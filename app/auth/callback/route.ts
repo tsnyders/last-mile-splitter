@@ -11,7 +11,6 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // Create profile row if it doesn't exist yet
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -24,7 +23,10 @@ export async function GET(request: Request) {
           { onConflict: "id" }
         );
       }
-      return NextResponse.redirect(`${origin}${next}`);
+
+      // If this was a password reset, redirect to the reset page
+      const redirectTo = next === "/reset-password" ? "/reset-password" : next;
+      return NextResponse.redirect(`${origin}${redirectTo}`);
     }
   }
 

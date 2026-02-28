@@ -95,15 +95,23 @@ function LoginForm() {
           {loading ? "Signing in…" : "Log in"}
         </button>
       </form>
-      <p className="text-sm opacity-70 text-center">
-        Don&apos;t have an account?{" "}
+      <div className="flex flex-col gap-2 text-center">
         <Link
-          href="/signup"
-          className="font-medium underline hover:opacity-90"
+          href="/forgot-password"
+          className="text-sm font-medium underline opacity-60 hover:opacity-90 transition"
         >
-          Sign up
+          Forgot your password?
         </Link>
-      </p>
+        <p className="text-sm opacity-70">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/signup"
+            className="font-medium underline hover:opacity-90"
+          >
+            Sign up
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

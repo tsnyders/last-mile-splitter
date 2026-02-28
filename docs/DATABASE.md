@@ -43,9 +43,37 @@ Junction table — who joined which ride.
 | `user_id` | `UUID` | PK part 2, FK → `profiles.id` (CASCADE) |
 | `joined_at` | `TIMESTAMPTZ` | Default `now()` |
 
+### `notifications`
+
+In-app + push notification records.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `UUID` | PK, auto-generated |
+| `user_id` | `UUID` | FK → `profiles.id` (CASCADE), NOT NULL |
+| `ride_id` | `UUID` | FK → `rides.id` (CASCADE), NOT NULL |
+| `type` | `TEXT` | Default `'rider_joined'` |
+| `message` | `TEXT` | NOT NULL |
+| `read` | `BOOLEAN` | Default `false` |
+| `created_at` | `TIMESTAMPTZ` | Default `now()` |
+
+### `push_subscriptions`
+
+Web Push subscription storage (one per user per device).
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `UUID` | PK, auto-generated |
+| `user_id` | `UUID` | FK → `profiles.id` (CASCADE), NOT NULL |
+| `endpoint` | `TEXT` | NOT NULL |
+| `keys_p256dh` | `TEXT` | NOT NULL |
+| `keys_auth` | `TEXT` | NOT NULL |
+| `created_at` | `TIMESTAMPTZ` | Default `now()` |
+| | | UNIQUE(`user_id`, `endpoint`) |
+
 ## Row Level Security (RLS)
 
-All three tables have RLS enabled.
+All tables have RLS enabled.
 
 ### profiles
 
@@ -71,50 +99,55 @@ All three tables have RLS enabled.
 | INSERT | Authenticated, must be self (`auth.uid() = user_id`) |
 | DELETE | Only own participation (`auth.uid() = user_id`) |
 
+### notifications
+
+| Operation | Policy |
+|---|---|
+| SELECT | Only own notifications (`auth.uid() = user_id`) |
+| UPDATE | Only own notifications (`auth.uid() = user_id`) |
+
+### push_subscriptions
+
+| Operation | Policy |
+|---|---|
+| ALL | Only own subscriptions (`auth.uid() = user_id`) |
+
 ## Triggers
 
-### Seat count sync (migration 002)
+### Seat count sync + auto-full (migrations 002 + 004)
 
-When a row is **inserted** into `ride_participants`, the trigger decrements `rides.available_seats` by 1. When a row is **deleted**, it increments by 1. Uses `GREATEST`/`LEAST` to clamp values.
+When a participant **joins** (`INSERT`), the trigger:
+- Decrements `rides.available_seats` by 1
+- Sets `status = 'full'` if seats hit 0
 
-```sql
-CREATE TRIGGER ride_participants_update_seats
-  AFTER INSERT OR DELETE ON public.ride_participants
-  FOR EACH ROW EXECUTE FUNCTION public.update_ride_available_seats();
-```
+When a participant **leaves** (`DELETE`), the trigger:
+- Increments `rides.available_seats` by 1
+- Re-opens the ride if it was `'full'`
 
-This runs as `SECURITY DEFINER` so it bypasses RLS (participants can't directly update `rides`, but the trigger can).
+Runs as `SECURITY DEFINER` to bypass RLS.
 
 ### Auto-create profile (migration 003)
 
-When a new row is inserted into `auth.users` (i.e. a user signs up), this trigger creates a corresponding `profiles` row using `full_name` from user metadata.
+When a new `auth.users` row is inserted, creates a `profiles` row with `full_name` from user metadata. Uses `ON CONFLICT DO NOTHING`.
 
-```sql
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-```
+### Notify ride creator (migration 004)
 
-Uses `ON CONFLICT DO NOTHING` so it's safe if the profile already exists.
+When a participant **joins** (`INSERT` on `ride_participants`), the trigger:
+- Looks up the ride and the joiner's name
+- Skips if the joiner is the creator (no self-notification)
+- Inserts a `notifications` row for the ride creator
 
 ## Realtime
 
-Enabled for the `rides` table:
+Enabled for two tables:
 
 ```sql
 ALTER PUBLICATION supabase_realtime ADD TABLE public.rides;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
 ```
 
-The frontend subscribes with:
-
-```typescript
-supabase
-  .channel('rides-changes')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'rides' }, callback)
-  .subscribe();
-```
-
-This fires on INSERT (new ride posted), UPDATE (seats change, status change), and DELETE.
+- **Rides** — `RideFeed` subscribes for instant feed updates
+- **Notifications** — `NotificationBell` subscribes for instant bell badge updates + push send
 
 ## Entity relationship
 
@@ -124,17 +157,18 @@ auth.users
     ▼ 1:1
 profiles
     │
-    ├──▶ rides (creator_id)          1:N
-    │
-    └──▶ ride_participants (user_id) N:M
-              │
-              └──▶ rides (ride_id)
+    ├──▶ rides (creator_id)            1:N
+    ├──▶ ride_participants (user_id)   N:M ──▶ rides (ride_id)
+    ├──▶ notifications (user_id)       1:N ──▶ rides (ride_id)
+    └──▶ push_subscriptions (user_id)  1:N
 ```
 
 ## Migrations
 
 Run in the **Supabase SQL Editor** in order:
 
-1. **`001_initial_schema.sql`** — Tables, RLS, policies, Realtime publication
-2. **`002_ride_seats_trigger.sql`** — `available_seats` auto-sync trigger
-3. **`003_auto_create_profile.sql`** — Auto-create profile on signup trigger
+1. **`001_initial_schema.sql`** — Tables, RLS, policies, Realtime for rides
+2. **`002_ride_seats_trigger.sql`** — Seat sync trigger
+3. **`003_auto_create_profile.sql`** — Auto-create profile on signup
+4. **`004_notifications_and_auto_full.sql`** — Notifications table, Realtime, notify trigger, auto-full logic
+5. **`005_push_subscriptions.sql`** — Push subscription storage
