@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f2027"/>
+      <stop offset="50%" style="stop-color:#203a43"/>
+      <stop offset="100%" style="stop-color:#2c5364"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- Car body -->
+  <path d="M148 310 L172 240 Q180 220 200 220 L312 220 Q332 220 340 240 L364 310" fill="none" stroke="white" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Car base -->
+  <rect x="128" y="300" width="256" height="50" rx="16" fill="none" stroke="white" stroke-width="14"/>
+  <!-- Wheels -->
+  <circle cx="192" cy="350" r="24" fill="none" stroke="white" stroke-width="12"/>
+  <circle cx="320" cy="350" r="24" fill="none" stroke="white" stroke-width="12"/>
+  <!-- Location pin -->
+  <path d="M256 120 C232 120 212 140 212 164 C212 196 256 232 256 232 C256 232 300 196 300 164 C300 140 280 120 256 120 Z" fill="none" stroke="#8ec5fc" stroke-width="10"/>
+  <circle cx="256" cy="162" r="10" fill="#8ec5fc"/>
+</svg>
