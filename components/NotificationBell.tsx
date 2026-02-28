@@ -182,11 +182,11 @@ export default function NotificationBell() {
       {open && (
         <>
           <div
-            className="bg-[#0f2027] fixed inset-0 z-10"
+            className="fixed inset-0 z-10"
             aria-hidden
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 top-12 z-20 w-72 glass-card rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-[#0f2027] absolute right-0 top-12 z-20 w-72 glass-card rounded-xl shadow-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
               <p className="text-sm font-medium">Notifications</p>
               {!pushEnabled && (
