@@ -1,4 +1,4 @@
-const CACHE_NAME = "ride-splitter-v1";
+const CACHE_NAME = "ride-splitter-v2";
 const PRECACHE = ["/", "/login", "/signup"];
 
 self.addEventListener("install", (event) => {
@@ -37,5 +37,41 @@ self.addEventListener("fetch", (event) => {
         return response;
       })
       .catch(() => caches.match(request))
+  );
+});
+
+// Push notifications
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  const data = event.data.json();
+  const title = data.title || "Ride Splitter";
+  const options = {
+    body: data.body || "",
+    icon: data.icon || "/icons/icon-192.svg",
+    badge: data.badge || "/icons/icon-192.svg",
+    vibrate: [100, 50, 100],
+    data: data.data || { url: "/" },
+    actions: [{ action: "open", title: "Open" }],
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const url = event.notification.data?.url || "/";
+  event.waitUntil(
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if (client.url.includes(self.location.origin) && "focus" in client) {
+            return client.focus();
+          }
+        }
+        return clients.openWindow(url);
+      })
   );
 });
