@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ServiceWorkerRegistrar } from "@/components/ServiceWorker";
+import { ServiceWorkerRegistrar, InstallPrompt } from "@/components/ServiceWorker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +45,7 @@ export default function RootLayout({
       >
         {children}
         <ServiceWorkerRegistrar />
+        <InstallPrompt />
       </body>
     </html>
   );
