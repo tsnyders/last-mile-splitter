@@ -25,13 +25,26 @@ export default function RideFeed() {
   }, [supabase]);
 
   const fetchRides = useCallback(async () => {
+    const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from("rides")
-      .select("*, profiles:creator_id(full_name)")
+      .select("*, profiles:creator_id!left(full_name)")
       .in("status", ["open", "full"])
-      .gte("departure_time", new Date().toISOString())
+      .gte("departure_time", cutoff)
       .order("departure_time", { ascending: true });
-    if (!error && data) setRides(data as RideWithCreator[]);
+    if (error) {
+      console.error("[fetchRides]", error);
+      // Fallback: try without the profile join
+      const { data: fallback } = await supabase
+        .from("rides")
+        .select("*")
+        .in("status", ["open", "full"])
+        .gte("departure_time", cutoff)
+        .order("departure_time", { ascending: true });
+      if (fallback) setRides(fallback.map((r) => ({ ...r, profiles: null })) as RideWithCreator[]);
+      return;
+    }
+    if (data) setRides(data as RideWithCreator[]);
   }, [supabase]);
 
   const fetchMyParticipations = useCallback(async (uid: string | null) => {
