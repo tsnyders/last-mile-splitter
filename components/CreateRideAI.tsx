@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Mic, MicOff, Send, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/database.types";
+import { useToast } from "@/components/Toast";
 
 type ParsedRide = {
   origin: string;
@@ -12,7 +13,6 @@ type ParsedRide = {
   total_seats: number;
 };
 
-/** Regex fallback for when the AI endpoint is unavailable. */
 function regexParse(text: string): ParsedRide | null {
   const trimmed = text.trim();
   if (!trimmed) return null;
@@ -79,10 +79,9 @@ async function aiParse(prompt: string): Promise<ParsedRide> {
 export default function CreateRideAI() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const { toast } = useToast();
 
   const toggleVoice = () => {
     if (listening && recognitionRef.current) {
@@ -94,7 +93,7 @@ export default function CreateRideAI() {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setError("Voice input is not supported in this browser.");
+      toast("Voice input is not supported in this browser.", "error");
       return;
     }
 
@@ -119,20 +118,16 @@ export default function CreateRideAI() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(false);
 
     if (!prompt.trim()) {
-      setError("Type or speak a ride description first.");
+      toast("Type or speak a ride description first.", "error");
       return;
     }
 
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      setError("Please sign in to post a ride.");
+      toast("Please sign in to post a ride.", "error");
       return;
     }
 
@@ -170,10 +165,9 @@ export default function CreateRideAI() {
       if (insertError) throw insertError;
 
       setPrompt("");
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      toast("Ride posted!", "success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create ride");
+      toast(err instanceof Error ? err.message : "Failed to create ride", "error");
     } finally {
       setLoading(false);
     }
@@ -190,10 +184,6 @@ export default function CreateRideAI() {
           className="w-full bg-transparent resize-none text-lg focus:outline-none placeholder:text-foreground/50 placeholder:font-light"
           disabled={loading}
         />
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        {success && (
-          <p className="text-sm text-green-600 dark:text-green-400">Ride posted!</p>
-        )}
         <div className="flex justify-between items-center pt-2 border-t border-white/10">
           <button
             type="button"
