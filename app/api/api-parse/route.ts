@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     }
 
     const { object } = await generateObject({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.5-flash"),
       schema: rideSchema,
       system: `You extract ride-share details from natural language. The user is at or near a transit station and wants to share a last-mile ride.
 Extract the origin, destination, departure time (24-hour HH:mm), and total seats.

@@ -61,7 +61,7 @@ Auth errors (e.g. expired OTP links) that land on `/` are caught by the proxy an
 
 - Receives `{ prompt: string }`
 - Uses Vercel AI SDK's `generateObject()` with a Zod schema
-- Model: `gemini-1.5-flash` (Google Generative AI)
+- Model: `gemini-2.5-flash` (Google Generative AI)
 - Extracts: `origin`, `destination`, `departure_time` (HH:mm), `total_seats`
 - Returns structured JSON with an ISO departure time
 

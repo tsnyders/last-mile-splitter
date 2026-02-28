@@ -45,7 +45,7 @@ In your Supabase dashboard:
 
 1. Go to [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
 2. Create an API key.
-3. The free tier supports `gemini-1.5-flash` with generous rate limits.
+3. The free tier supports `gemini-2.5-flash` with generous rate limits.
 
 ## 6. Environment variables
 
