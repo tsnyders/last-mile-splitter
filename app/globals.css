@@ -1,11 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  /* Soft, modern gradient background for light mode */
   --background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
   --foreground: #171717;
   
-  /* Glassmorphism variables (Light Mode) */
   --glass-bg: rgba(255, 255, 255, 0.45);
   --glass-border: rgba(255, 255, 255, 0.4);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
@@ -20,29 +18,25 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Deep, sleek gradient background for dark mode */
     --background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
     --foreground: #ededed;
-    
-    /* Glassmorphism variables (Dark Mode) */
-    --glass-bg: rgba(15, 23, 42, 0.3); /* Tailwind slate-900 with opacity */
+      
+    --glass-bg: rgba(15, 23, 42, 0.3);
     --glass-border: rgba(255, 255, 255, 0.1);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   }
 }
 
 body {
-  /* Set min-height so the gradient covers the whole screen on mobile */
   min-height: 100dvh;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  /* Keeps text crisp against the glass background */
   -webkit-font-smoothing: antialiased; 
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Glass Utility Classes */
+
 @layer utilities {
   .glass-card {
     background: var(--glass-bg);
@@ -50,7 +44,7 @@ body {
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
-    border-radius: 1.25rem; /* 20px for a softer card feel */
+    border-radius: 1.25rem;
   }
   
   .glass-input {

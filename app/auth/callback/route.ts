@@ -28,6 +28,5 @@ export async function GET(request: Request) {
     }
   }
 
-  // Something went wrong — send them to login with an error hint
   return NextResponse.redirect(`${origin}/login?error=confirmation_failed`);
 }

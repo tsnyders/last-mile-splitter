@@ -151,7 +151,6 @@ export default function CreateRideAI() {
         parsed = fallback;
       }
 
-      // Ensure the user has a profiles row (FK requirement for rides.creator_id)
       await supabase.from("profiles").upsert(
         { id: user.id, full_name: user.user_metadata?.full_name ?? null },
         { onConflict: "id" }

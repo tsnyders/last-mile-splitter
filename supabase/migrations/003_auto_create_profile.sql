@@ -1,5 +1,4 @@
 -- Auto-create a profiles row whenever a new user confirms via auth.
--- This is a safety net: the app also creates profiles in the auth callback route.
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$

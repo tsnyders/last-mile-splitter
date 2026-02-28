@@ -1,4 +1,4 @@
--- 1. Create Tables
+-- Create Tables
 CREATE TABLE public.profiles (
   id UUID REFERENCES auth.users NOT NULL PRIMARY KEY,
   full_name TEXT,
@@ -25,12 +25,12 @@ CREATE TABLE public.ride_participants (
   PRIMARY KEY (ride_id, user_id)
 );
 
--- 2. Enable Row Level Security (RLS)
+--  Row Level Security (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rides ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ride_participants ENABLE ROW LEVEL SECURITY;
 
--- 3. Create RLS Policies
+-- RLS Policies
 -- Profiles: Anyone can read, only the user can update their own profile
 CREATE POLICY "Public profiles are viewable by everyone." ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Users can insert their own profile." ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
@@ -46,5 +46,5 @@ CREATE POLICY "Participants are viewable by everyone." ON public.ride_participan
 CREATE POLICY "Authenticated users can join rides." ON public.ride_participants FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can leave rides." ON public.ride_participants FOR DELETE USING (auth.uid() = user_id);
 
--- 4. Enable Realtime for the Rides table
+--  Realtime for the Rides table
 ALTER PUBLICATION supabase_realtime ADD TABLE public.rides;

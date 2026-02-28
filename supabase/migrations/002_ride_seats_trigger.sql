@@ -1,5 +1,4 @@
--- Keep rides.available_seats in sync when participants join or leave.
--- Run this after 001_initial_schema.sql
+
 
 CREATE OR REPLACE FUNCTION public.update_ride_available_seats()
 RETURNS TRIGGER AS $$
